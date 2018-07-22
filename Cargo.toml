@@ -1,0 +1,6 @@
+[package]
+name = "vpk"
+version = "0.1.0"
+authors = ["Roman Shishkin <spark@uwtech.org>"]
+
+[dependencies]
