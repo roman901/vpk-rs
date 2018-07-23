@@ -4,3 +4,4 @@ version = "0.1.0"
 authors = ["Roman Shishkin <spark@uwtech.org>"]
 
 [dependencies]
+byteorder = "1"

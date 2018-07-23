@@ -1,5 +1,10 @@
+extern crate byteorder;
+extern crate core;
+
+mod reader;
 mod header;
 
+use reader::VPKReader;
 use header::VPKHeader;
 
 use std::path::Path;
@@ -20,24 +25,16 @@ pub fn open(vpk_file: &String) -> Result<VPKBundle, Error> {
     let p = Path::new(vpk_file);
     let f = File::open(&p)?;
 
-    // Read header of file
-    let header = read_header(f);
+    // Create VPKReader and read header
+    let r = VPKReader::new(f);
+    let header = match r.read_header() {
+        Ok(header) => header,
+        Err(e) => panic!("Error while reading header: {}", e)
+    };
+
     if header.signature != VPK_SIGNATURE {
         panic!("Specified file is not vpk dir file!");
     }
 
     Ok(VPKBundle {header})
-}
-
-fn read_header(f: File) -> VPKHeader {
-    let mut header: VPKHeader = unsafe { mem::uninitialized() };
-    let mut reader = BufReader::new(f);
-
-    unsafe {
-        let dst_ptr = &mut header as *mut VPKHeader as *mut u8;
-        let mut slice = slice::from_raw_parts_mut(dst_ptr, mem::size_of::<VPKHeader>());
-
-        reader.read_exact(slice);
-    }
-    header
 }
