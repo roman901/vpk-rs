@@ -29,6 +29,15 @@ pub fn open(vpk_file: &String) -> Result<VPKBundle, Error> {
     let f = File::open(&p)?;
 
     // Read header of file
+    let header = read_header(f);
+    if header.signature != VPK_SIGNATURE {
+        panic!("Specified file is not vpk dir file!");
+    }
+
+    Ok(VPKBundle {header})
+}
+
+fn read_header(f: File) -> VPKHeader {
     let mut header: VPKHeader = unsafe { mem::uninitialized() };
     let mut reader = BufReader::new(f);
 
@@ -39,9 +48,5 @@ pub fn open(vpk_file: &String) -> Result<VPKBundle, Error> {
         reader.read_exact(slice);
     }
 
-    if header.signature != VPK_SIGNATURE {
-        panic!("Specified file is not vpk dir file!");
-    }
-
-    Ok(VPKBundle {header})
+    header
 }
