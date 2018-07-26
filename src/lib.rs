@@ -19,7 +19,7 @@ pub fn open(vpk_file: &String) -> Result<VPKBundle, Error> {
     let f = File::open(&p)?;
 
     // Create VPKReader and read header
-    let mut r = VPKReader::new(f);
+    let mut r = VPKReader::new(&f);
     let header = match r.read_header() {
         Ok(header) => header,
         Err(e) => panic!("Error while reading header: {}", e)

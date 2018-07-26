@@ -6,13 +6,13 @@ use std::io::{BufReader, Read};
 use std::slice;
 use std::io::Error;
 
-pub struct VPKReader {
-    reader: BufReader<File>,
+pub struct VPKReader<'a> {
+    reader: BufReader<&'a File>,
     pos: u32
 }
 
-impl VPKReader {
-    pub fn new(file: File) -> VPKReader {
+impl<'a> VPKReader<'a> {
+    pub fn new(file: &'a File) -> VPKReader<'a> {
         let reader = BufReader::new(file);
 
         VPKReader { reader, pos: 0 }
