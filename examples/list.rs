@@ -9,7 +9,7 @@ fn main() {
         panic!("Input file is not specified");
     }
 
-    let vpk_file = match vpk::open(&args[1]) {
+    let vpk_file = match vpk::from_path(&args[1]) {
         Err(e) => panic!("Error while open file {}, err {}", &args[1], e),
         Ok(vpk_file) => vpk_file
     };

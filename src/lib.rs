@@ -1,33 +1,23 @@
 extern crate byteorder;
-extern crate core;
 
-mod reader;
+mod vpk;
 mod header;
-mod bundle;
+mod index;
 
-use bundle::VPKBundle;
-use reader::VPKReader;
+use vpk::VPK;
+
 use std::io::Error;
-
 use std::path::Path;
 use std::fs::File;
 
-const VPK_SIGNATURE: u32 = 0x55aa1234;
+pub fn from_path(path: &str) -> Result<VPK, Error> {
+    let path = Path::new(path);
+    let f = File::open(&path)?;
 
-pub fn open(vpk_file: &String) -> Result<VPKBundle, Error> {
-    let p = Path::new(vpk_file);
-    let f = File::open(&p)?;
+    from_file(f)
+}
 
-    // Create VPKReader and read header
-    let mut r = VPKReader::new(&f);
-    let header = match r.read_header() {
-        Ok(header) => header,
-        Err(e) => panic!("Error while reading header: {}", e)
-    };
-
-    if header.signature != VPK_SIGNATURE {
-        panic!("Specified file is not vpk dir file!");
-    }
-
-    Ok(VPKBundle::new(header))
+pub fn from_file(file: File) -> Result<VPK, Error> {
+    let vpk = VPK::read(file)?;
+    Ok(vpk)
 }
