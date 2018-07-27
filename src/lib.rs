@@ -2,7 +2,6 @@ extern crate byteorder;
 
 mod vpk;
 mod header;
-mod index;
 
 use vpk::VPK;
 

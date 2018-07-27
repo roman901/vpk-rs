@@ -19,3 +19,13 @@ pub struct VPKHeaderV2Checksum {
     chunk_hashes_checksum: u16,
     file_checksum: u16
 }
+
+#[derive(Debug)]
+pub struct VPKDirectoryEntry {
+    crc: u32,
+    preload_bytes: u16,
+    archive_index: u16,
+    entry_offset: u32,
+    entry_length: u32,
+    terminator: u16
+}
