@@ -1,5 +1,3 @@
-extern crate byteorder;
-
 mod vpk;
 mod header;
 
