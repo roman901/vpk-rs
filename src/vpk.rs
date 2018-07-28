@@ -110,9 +110,7 @@ impl VPK {
                         reader.by_ref().take(18).read_exact(slice)?;
                     }
 
-                    if dir_entry.suffix != 0xffff {
-                        panic!("Error while parsing index");
-                    }
+                    assert_eq!(dir_entry.suffix, 0xffff, "Error while parsing index");
 
                     if dir_entry.archive_index == 0x7fff {
                         dir_entry.archive_offset = vpk.header_length + vpk.header.tree_length + dir_entry.archive_offset;
