@@ -1,5 +1,6 @@
 mod vpk;
 mod structs;
+mod entry;
 
 use vpk::VPK;
 
@@ -9,12 +10,6 @@ use std::fs::File;
 
 pub fn from_path(path: &str) -> Result<VPK, Error> {
     let path = Path::new(path);
-    let f = File::open(&path)?;
-
-    from_file(f)
-}
-
-pub fn from_file(file: File) -> Result<VPK, Error> {
-    let vpk = VPK::read(file)?;
+    let vpk = VPK::read(&path)?;
     Ok(vpk)
 }

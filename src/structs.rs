@@ -19,20 +19,3 @@ pub struct VPKHeaderV2Checksum {
     pub chunk_hashes_checksum: u128,
     pub file_checksum: u128
 }
-
-#[derive(Debug)]
-pub struct VPKEntry {
-    pub dir_entry: VPKDirectoryEntry,
-    pub preload_data: Vec<u8>
-}
-
-#[derive(Debug)]
-#[repr(packed)]
-pub struct VPKDirectoryEntry {
-    pub crc32: u32,
-    pub preload_length: u16,
-    pub archive_index: u16,
-    pub archive_offset: u32,
-    pub file_length: u32,
-    pub suffix: u16
-}

@@ -1,10 +1,12 @@
 use structs::*;
+use entry::*;
 
 use std::fs::File;
 use std::mem;
 use std::io::{BufReader, Read, Seek, SeekFrom, Error};
 use std::slice;
 use std::collections::HashMap;
+use std::path::Path;
 
 const VPK_SIGNATURE: u32 = 0x55aa1234;
 const VPK_SELF_HASHES_LENGTH: u32 = 48;
@@ -19,7 +21,9 @@ pub struct VPK {
 }
 
 impl VPK {
-    pub fn read(file: File) -> Result<VPK, Error> {
+    pub fn read(dir_path: &Path) -> Result<VPK, Error> {
+        let mut file = File::open(dir_path)?;
+
         let mut reader = BufReader::new(file);
 
         // Read main VPK header
@@ -116,9 +120,13 @@ impl VPK {
                     }
 
                     let preload_length = dir_entry.preload_length;
-
+                    let _dir_path = dir_path.to_str().unwrap();
+                    let archive_path = _dir_path.replace(
+                        "dir.",
+                        &format!("{:03}.", dir_entry.archive_index));
                     let mut vpk_entry = VPKEntry {
                         dir_entry,
+                        archive_path,
                         preload_data: vec![0u8; preload_length as usize]
                     };
 
