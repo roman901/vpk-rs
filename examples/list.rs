@@ -14,5 +14,7 @@ fn main() {
         Ok(vpk_file) => vpk_file
     };
 
-    println!("{:#?}", vpk_file);
+    for (file, _) in &vpk_file.tree {
+        println!("{}", file);
+    }
 }

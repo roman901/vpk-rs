@@ -1,22 +1,21 @@
-use header::{VPKHeader, VPKHeaderV2, VPKHeaderV2Checksum, VPKEntry, VPKDirectoryEntry};
+use structs::*;
 
 use std::fs::File;
 use std::mem;
 use std::io::{BufReader, Read, Seek, SeekFrom, Error};
 use std::slice;
 use std::collections::HashMap;
-use std::vec::Vec;
 
 const VPK_SIGNATURE: u32 = 0x55aa1234;
 const VPK_SELF_HASHES_LENGTH: u32 = 48;
 
 #[derive(Debug)]
 pub struct VPK {
-    header_length: u32,
-    header: VPKHeader,
-    header_v2: Option<VPKHeaderV2>,
-    header_v2_checksum: Option<VPKHeaderV2Checksum>,
-    tree: HashMap<String, VPKEntry>
+    pub header_length: u32,
+    pub header: VPKHeader,
+    pub header_v2: Option<VPKHeaderV2>,
+    pub header_v2_checksum: Option<VPKHeaderV2Checksum>,
+    pub tree: HashMap<String, VPKEntry>
 }
 
 impl VPK {

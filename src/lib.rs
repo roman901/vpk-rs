@@ -1,5 +1,5 @@
 mod vpk;
-mod header;
+mod structs;
 
 use vpk::VPK;
 
