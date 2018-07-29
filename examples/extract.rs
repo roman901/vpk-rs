@@ -39,12 +39,11 @@ fn main() -> std::io::Result<()> {
 
         let mut buf = vec![0u8; buf_len];
 
-        let len = vpk_entry.read(&mut buf)?;
+        vpk_entry.read(&mut buf)?;
 
 
-        let mut out_buf = BufWriter::new(File::create(&path.join(&file_path))?);
+        let mut out_buf = File::create(&path.join(&file_path))?;
         out_buf.write(&buf)?;
-        //println!("{:#?}, size {}", buf, len);
 
     }
 

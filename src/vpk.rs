@@ -22,7 +22,7 @@ pub struct VPK {
 
 impl VPK {
     pub fn read(dir_path: &Path) -> Result<VPK, Error> {
-        let mut file = File::open(dir_path)?;
+        let file = File::open(dir_path)?;
 
         let mut reader = BufReader::new(file);
 
@@ -78,18 +78,14 @@ impl VPK {
         }
 
         // Read index tree
-        let mut ext: String = String::new();
-        let mut path: String = String::new();
-        let mut name: String = String::new();
-
         loop {
-            ext = read_cstring(&mut reader)?;
+            let ext = read_cstring(&mut reader)?;
             if ext == "" {
                 break;
             }
 
             loop {
-                path = read_cstring(&mut reader)?;
+                let mut path = read_cstring(&mut reader)?;
                 if path == "" {
                     break;
                 }
@@ -100,7 +96,7 @@ impl VPK {
                 }
 
                 loop {
-                    name = read_cstring(&mut reader)?;
+                    let name = read_cstring(&mut reader)?;
                     if name == "" {
                         break;
                     }
