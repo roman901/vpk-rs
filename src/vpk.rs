@@ -150,5 +150,6 @@ fn read_cstring(reader: &mut BufReader<File>) -> Result<String, Error> {
             string.push(buf[0] as char);
         }
     }
+
     return Ok(string);
 }

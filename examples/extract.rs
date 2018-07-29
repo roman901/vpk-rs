@@ -44,7 +44,6 @@ fn main() -> std::io::Result<()> {
 
         let mut out_buf = File::create(&path.join(&file_path))?;
         out_buf.write(&buf)?;
-
     }
 
     Ok(())

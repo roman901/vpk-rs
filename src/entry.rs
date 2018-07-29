@@ -15,6 +15,7 @@ impl Read for VPKEntry {
             buf.copy_from_slice(&self.preload_data);
             return Ok(buf.len());
         }
+
         let mut file = File::open(&self.archive_path)?;
         file.seek(SeekFrom::Start(self.dir_entry.archive_offset as u64))?;
         file.take(self.dir_entry.file_length as u64).read(buf)?;
