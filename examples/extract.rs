@@ -2,8 +2,10 @@ extern crate vpk;
 
 use std::env;
 use std::fs;
-use std::io::Read;
+use std::io::{Read, Write, BufWriter};
 use std::path::Path;
+use std::fs::File;
+use std::vec::Vec;
 
 fn main() -> std::io::Result<()> {
     let args: Vec<_> = env::args().collect();
@@ -28,9 +30,21 @@ fn main() -> std::io::Result<()> {
         let file_path = Path::new(file);
         fs::create_dir_all(path.join(&file_path.parent().unwrap()))?;
 
-        let mut buf = [0u8; 10];
+        let mut buf_len: usize = 0;
+        if vpk_entry.dir_entry.archive_index == 0x7fff {
+            buf_len = vpk_entry.dir_entry.preload_length as usize;
+        } else {
+            buf_len = vpk_entry.dir_entry.file_length as usize;
+        }
+
+        let mut buf = vec![0u8; buf_len];
+
         let len = vpk_entry.read(&mut buf)?;
-        println!("{:#?}", len);
+
+
+        let mut out_buf = BufWriter::new(File::create(&path.join(&file_path))?);
+        out_buf.write(&buf)?;
+        //println!("{:#?}, size {}", buf, len);
 
     }
 

@@ -1,6 +1,7 @@
 use std::io::{Read, Write, Seek, SeekFrom, Error};
 use std::path::Path;
 use std::fs::File;
+use std::cmp;
 
 #[derive(Debug)]
 pub struct VPKEntry {
@@ -13,14 +14,12 @@ impl Read for VPKEntry {
     fn read(&mut self, mut buf: &mut [u8]) -> Result<usize, Error> {
         if self.dir_entry.archive_index == 0x7fff {
             // Return internal preload_data
-            &buf.write(&self.preload_data).unwrap();
-
-            return Ok(self.dir_entry.preload_length as usize);
-        } else {
-            let mut file = File::open(&self.archive_path)?;
-            file.seek(SeekFrom::Start(self.dir_entry.archive_offset as u64));
-            file.take(self.dir_entry.file_length as u64).read(&mut buf);
+            buf.copy_from_slice(&self.preload_data);
+            return Ok(buf.len());
         }
+        let mut file = File::open(&self.archive_path)?;
+        file.seek(SeekFrom::Start(self.dir_entry.archive_offset as u64));
+        file.take(self.dir_entry.file_length as u64).read(buf);
 
         Ok(self.dir_entry.file_length as usize)
     }
