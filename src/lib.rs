@@ -2,7 +2,7 @@ mod entry;
 mod structs;
 mod vpk;
 
-use vpk::VPK;
+use crate::vpk::VPK;
 
 use std::io::Error;
 use std::path::Path;

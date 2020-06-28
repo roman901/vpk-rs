@@ -3,7 +3,7 @@ extern crate vpk;
 use std::env;
 use std::fs;
 use std::fs::File;
-use std::io::{BufWriter, Read, Write};
+use std::io::{Read, Write};
 use std::path::Path;
 use std::vec::Vec;
 
@@ -25,7 +25,7 @@ fn main() -> std::io::Result<()> {
         Ok(vpk_file) => vpk_file,
     };
 
-    for (file, mut vpk_entry) in vpk_file.tree.iter_mut() {
+    for (file, vpk_entry) in vpk_file.tree.iter_mut() {
         println!(
             "Extract {}, archive index {}...",
             file, vpk_entry.dir_entry.archive_index

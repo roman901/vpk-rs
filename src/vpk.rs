@@ -1,5 +1,5 @@
-use entry::*;
-use structs::*;
+use crate::entry::*;
+use crate::structs::*;
 
 use std::collections::HashMap;
 use std::fs::File;
