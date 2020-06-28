@@ -1,11 +1,13 @@
 use crate::entry::*;
 use crate::structs::*;
+use crate::Error;
 
 use std::collections::HashMap;
 use std::fs::File;
-use std::io::{BufReader, Error, Read, Seek, SeekFrom};
+use std::io::{BufReader, Read, Seek, SeekFrom};
 use std::mem;
 use std::path::Path;
+
 
 const VPK_SIGNATURE: u32 = 0x55aa1234;
 const VPK_SELF_HASHES_LENGTH: u32 = 48;
@@ -28,11 +30,12 @@ impl VPK {
         // Read main VPK header
         let header = VPKHeader::read(&mut reader)?;
 
-        assert_eq!(
-            header.signature, VPK_SIGNATURE,
-            "Specified file is not VPK _dir file"
-        );
-        assert!(header.version <= 2, "Unsupported version of VPK bundle");
+        if header.signature != VPK_SIGNATURE {
+            return Err(Error::InvalidSignature);
+        }
+        if header.version > 2 {
+            return Err(Error::UnsupportedVersion(header.version));
+        }
 
         let mut vpk = VPK {
             header_length: 4 * 3,
@@ -45,10 +48,9 @@ impl VPK {
         if vpk.header.version == 2 {
             let header_v2 = VPKHeaderV2::read(&mut reader)?;
 
-            assert_eq!(
-                header_v2.self_hashes_length, VPK_SELF_HASHES_LENGTH,
-                "Self hashes section size mismatch"
-            );
+            if header_v2.self_hashes_length != VPK_SELF_HASHES_LENGTH {
+                return Err(Error::HashSizeMismatch);
+            }
             vpk.header_length += 4 * 4;
 
             let checksum_offset: u32 = vpk.header.tree_length
@@ -92,7 +94,9 @@ impl VPK {
 
                     let mut dir_entry = VPKDirectoryEntry::read(&mut reader)?;
 
-                    assert_eq!(dir_entry.suffix, 0xffff, "Error while parsing index");
+                    if dir_entry.suffix != 0xffff {
+                        return Err(Error::MalformedIndex);
+                    }
 
                     if dir_entry.archive_index == 0x7fff {
                         dir_entry.archive_offset =
