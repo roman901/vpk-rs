@@ -1,6 +1,6 @@
-mod vpk;
-mod structs;
 mod entry;
+mod structs;
+mod vpk;
 
 use vpk::VPK;
 

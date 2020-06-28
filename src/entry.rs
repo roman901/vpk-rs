@@ -1,11 +1,11 @@
-use std::io::{Read, Seek, SeekFrom, Error};
 use std::fs::File;
+use std::io::{Error, Read, Seek, SeekFrom};
 
 #[derive(Debug)]
 pub struct VPKEntry {
     pub dir_entry: VPKDirectoryEntry,
     pub archive_path: String,
-    pub preload_data: Vec<u8>
+    pub preload_data: Vec<u8>,
 }
 
 impl Read for VPKEntry {
@@ -32,5 +32,5 @@ pub struct VPKDirectoryEntry {
     pub archive_index: u16,
     pub archive_offset: u32,
     pub file_length: u32,
-    pub suffix: u16
+    pub suffix: u16,
 }
