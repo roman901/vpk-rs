@@ -6,7 +6,6 @@ use std::fs::File;
 use std::io::{BufReader, Error, Read, Seek, SeekFrom};
 use std::mem;
 use std::path::Path;
-use std::slice;
 
 const VPK_SIGNATURE: u32 = 0x55aa1234;
 const VPK_SELF_HASHES_LENGTH: u32 = 48;
@@ -27,13 +26,7 @@ impl VPK {
         let mut reader = BufReader::new(file);
 
         // Read main VPK header
-        let mut header: VPKHeader = unsafe { mem::uninitialized() };
-        unsafe {
-            let dst_ptr = &mut header as *mut VPKHeader as *mut u8;
-            let slice = slice::from_raw_parts_mut(dst_ptr, mem::size_of::<VPKHeader>());
-
-            reader.read_exact(slice)?;
-        }
+        let header = VPKHeader::read(&mut reader)?;
 
         assert_eq!(
             header.signature, VPK_SIGNATURE,
@@ -50,13 +43,7 @@ impl VPK {
         };
 
         if vpk.header.version == 2 {
-            let mut header_v2: VPKHeaderV2 = unsafe { mem::uninitialized() };
-            unsafe {
-                let dst_ptr = &mut header_v2 as *mut VPKHeaderV2 as *mut u8;
-                let slice = slice::from_raw_parts_mut(dst_ptr, mem::size_of::<VPKHeaderV2>());
-
-                reader.read_exact(slice)?;
-            }
+            let header_v2 = VPKHeaderV2::read(&mut reader)?;
 
             assert_eq!(
                 header_v2.self_hashes_length, VPK_SELF_HASHES_LENGTH,
@@ -69,14 +56,7 @@ impl VPK {
                 + header_v2.chunk_hashes_length;
             reader.seek(SeekFrom::Current(checksum_offset as i64))?;
 
-            let mut header_v2_checksum: VPKHeaderV2Checksum = unsafe { mem::uninitialized() };
-            unsafe {
-                let dst_ptr = &mut header_v2_checksum as *mut VPKHeaderV2Checksum as *mut u8;
-                let slice =
-                    slice::from_raw_parts_mut(dst_ptr, mem::size_of::<VPKHeaderV2Checksum>());
-
-                reader.read_exact(slice)?;
-            }
+            let header_v2_checksum = VPKHeaderV2Checksum::read(&mut reader)?;
 
             vpk.header_v2 = Some(header_v2);
             vpk.header_v2_checksum = Some(header_v2_checksum);
@@ -110,14 +90,7 @@ impl VPK {
                         break;
                     }
 
-                    let mut dir_entry: VPKDirectoryEntry = unsafe { mem::uninitialized() };
-                    unsafe {
-                        let dst_ptr = &mut dir_entry as *mut VPKDirectoryEntry as *mut u8;
-                        let slice =
-                            slice::from_raw_parts_mut(dst_ptr, mem::size_of::<VPKDirectoryEntry>());
-
-                        reader.by_ref().take(18).read_exact(slice)?;
-                    }
+                    let mut dir_entry = VPKDirectoryEntry::read(&mut reader)?;
 
                     assert_eq!(dir_entry.suffix, 0xffff, "Error while parsing index");
 

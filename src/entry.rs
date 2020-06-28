@@ -1,5 +1,6 @@
 use std::fs::File;
-use std::io::{Error, Read, Seek, SeekFrom};
+use std::io::{Error, Read, Seek, SeekFrom, self};
+use byteorder::{ReadBytesExt, LittleEndian};
 
 #[derive(Debug)]
 pub struct VPKEntry {
@@ -25,7 +26,6 @@ impl Read for VPKEntry {
 }
 
 #[derive(Debug)]
-#[repr(packed)]
 pub struct VPKDirectoryEntry {
     pub crc32: u32,
     pub preload_length: u16,
@@ -33,4 +33,17 @@ pub struct VPKDirectoryEntry {
     pub archive_offset: u32,
     pub file_length: u32,
     pub suffix: u16,
+}
+
+impl VPKDirectoryEntry {
+    pub fn read(reader: &mut impl Read) -> io::Result<Self> {
+        Ok(VPKDirectoryEntry {
+            crc32: reader.read_u32::<LittleEndian>()?,
+            preload_length: reader.read_u16::<LittleEndian>()?,
+            archive_index: reader.read_u16::<LittleEndian>()?,
+            archive_offset: reader.read_u32::<LittleEndian>()?,
+            file_length: reader.read_u32::<LittleEndian>()?,
+            suffix: reader.read_u16::<LittleEndian>()?,
+        })
+    }
 }
