@@ -11,7 +11,7 @@ fn main() {
 
     let vpk_file = match vpk::from_path(&args[1]) {
         Err(e) => panic!("Error while open file {}, err {}", &args[1], e),
-        Ok(vpk_file) => vpk_file
+        Ok(vpk_file) => vpk_file,
     };
 
     for (file, _) in &vpk_file.tree {

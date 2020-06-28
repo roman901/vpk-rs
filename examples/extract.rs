@@ -2,9 +2,9 @@ extern crate vpk;
 
 use std::env;
 use std::fs;
-use std::io::{Read, Write, BufWriter};
-use std::path::Path;
 use std::fs::File;
+use std::io::{Read, Write};
+use std::path::Path;
 use std::vec::Vec;
 
 fn main() -> std::io::Result<()> {
@@ -22,11 +22,14 @@ fn main() -> std::io::Result<()> {
 
     let mut vpk_file = match vpk::from_path(&args[1]) {
         Err(e) => panic!("Error while open file {}, err {}", &args[1], e),
-        Ok(vpk_file) => vpk_file
+        Ok(vpk_file) => vpk_file,
     };
 
-    for (file, mut vpk_entry) in vpk_file.tree.iter_mut() {
-        println!("Extract {}, archive index {}...", file, vpk_entry.dir_entry.archive_index);
+    for (file, vpk_entry) in vpk_file.tree.iter_mut() {
+        println!(
+            "Extract {}, archive index {}...",
+            file, vpk_entry.dir_entry.archive_index
+        );
         let file_path = Path::new(file);
         fs::create_dir_all(path.join(&file_path.parent().unwrap()))?;
 
@@ -40,7 +43,6 @@ fn main() -> std::io::Result<()> {
         let mut buf = vec![0u8; buf_len];
 
         vpk_entry.read(&mut buf)?;
-
 
         let mut out_buf = File::create(&path.join(&file_path))?;
         out_buf.write(&buf)?;

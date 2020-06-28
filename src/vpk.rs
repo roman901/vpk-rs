@@ -1,11 +1,10 @@
-use structs::*;
-use entry::*;
+use crate::entry::*;
+use crate::structs::*;
 
-use std::fs::File;
-use std::mem;
-use std::io::{BufReader, Read, Seek, SeekFrom, Error};
-use std::slice;
 use std::collections::HashMap;
+use std::fs::File;
+use std::io::{BufReader, Error, Read, Seek, SeekFrom};
+use std::mem;
 use std::path::Path;
 
 const VPK_SIGNATURE: u32 = 0x55aa1234;
@@ -17,7 +16,7 @@ pub struct VPK {
     pub header: VPKHeader,
     pub header_v2: Option<VPKHeaderV2>,
     pub header_v2_checksum: Option<VPKHeaderV2Checksum>,
-    pub tree: HashMap<String, VPKEntry>
+    pub tree: HashMap<String, VPKEntry>,
 }
 
 impl VPK {
@@ -27,47 +26,37 @@ impl VPK {
         let mut reader = BufReader::new(file);
 
         // Read main VPK header
-        let mut header: VPKHeader = unsafe { mem::uninitialized() };
-        unsafe {
-            let dst_ptr = &mut header as *mut VPKHeader as *mut u8;
-            let slice = slice::from_raw_parts_mut(dst_ptr, mem::size_of::<VPKHeader>());
+        let header = VPKHeader::read(&mut reader)?;
 
-            reader.read_exact(slice)?;
-        }
-
-        assert_eq!(header.signature, VPK_SIGNATURE, "Specified file is not VPK _dir file");
+        assert_eq!(
+            header.signature, VPK_SIGNATURE,
+            "Specified file is not VPK _dir file"
+        );
         assert!(header.version <= 2, "Unsupported version of VPK bundle");
 
         let mut vpk = VPK {
-            header_length: 4*3,
+            header_length: 4 * 3,
             header,
             header_v2: None,
             header_v2_checksum: None,
-            tree: HashMap::new()
+            tree: HashMap::new(),
         };
 
         if vpk.header.version == 2 {
-            let mut header_v2: VPKHeaderV2 = unsafe { mem::uninitialized() };
-            unsafe {
-                let dst_ptr = &mut header_v2 as *mut VPKHeaderV2 as *mut u8;
-                let slice = slice::from_raw_parts_mut(dst_ptr, mem::size_of::<VPKHeaderV2>());
+            let header_v2 = VPKHeaderV2::read(&mut reader)?;
 
-                reader.read_exact(slice)?;
-            }
+            assert_eq!(
+                header_v2.self_hashes_length, VPK_SELF_HASHES_LENGTH,
+                "Self hashes section size mismatch"
+            );
+            vpk.header_length += 4 * 4;
 
-            assert_eq!(header_v2.self_hashes_length, VPK_SELF_HASHES_LENGTH, "Self hashes section size mismatch");
-            vpk.header_length += 4*4;
-
-            let checksum_offset: u32 = vpk.header.tree_length + header_v2.embed_chunk_length + header_v2.chunk_hashes_length;
+            let checksum_offset: u32 = vpk.header.tree_length
+                + header_v2.embed_chunk_length
+                + header_v2.chunk_hashes_length;
             reader.seek(SeekFrom::Current(checksum_offset as i64))?;
 
-            let mut header_v2_checksum: VPKHeaderV2Checksum = unsafe { mem::uninitialized() };
-            unsafe {
-                let dst_ptr = &mut header_v2_checksum as *mut VPKHeaderV2Checksum as *mut u8;
-                let slice = slice::from_raw_parts_mut(dst_ptr, mem::size_of::<VPKHeaderV2Checksum>());
-
-                reader.read_exact(slice)?;
-            }
+            let header_v2_checksum = VPKHeaderV2Checksum::read(&mut reader)?;
 
             vpk.header_v2 = Some(header_v2);
             vpk.header_v2_checksum = Some(header_v2_checksum);
@@ -101,34 +90,32 @@ impl VPK {
                         break;
                     }
 
-                    let mut dir_entry: VPKDirectoryEntry = unsafe { mem::uninitialized() };
-                    unsafe {
-                        let dst_ptr = &mut dir_entry as *mut VPKDirectoryEntry as *mut u8;
-                        let slice = slice::from_raw_parts_mut(dst_ptr, mem::size_of::<VPKDirectoryEntry>());
-
-                        reader.by_ref().take(18).read_exact(slice)?;
-                    }
+                    let mut dir_entry = VPKDirectoryEntry::read(&mut reader)?;
 
                     assert_eq!(dir_entry.suffix, 0xffff, "Error while parsing index");
 
                     if dir_entry.archive_index == 0x7fff {
-                        dir_entry.archive_offset = vpk.header_length + vpk.header.tree_length + dir_entry.archive_offset;
+                        dir_entry.archive_offset =
+                            vpk.header_length + vpk.header.tree_length + dir_entry.archive_offset;
                     }
 
                     let preload_length = dir_entry.preload_length;
                     let _dir_path = dir_path.to_str().unwrap();
-                    let archive_path = _dir_path.replace(
-                        "dir.",
-                        &format!("{:03}.", dir_entry.archive_index));
+                    let archive_path =
+                        _dir_path.replace("dir.", &format!("{:03}.", dir_entry.archive_index));
                     let mut vpk_entry = VPKEntry {
                         dir_entry,
                         archive_path,
-                        preload_data: vec![0u8; preload_length as usize]
+                        preload_data: vec![0u8; preload_length as usize],
                     };
 
-                    reader.by_ref().take(vpk_entry.dir_entry.preload_length as u64).read_exact(&mut vpk_entry.preload_data)?;
+                    reader
+                        .by_ref()
+                        .take(vpk_entry.dir_entry.preload_length as u64)
+                        .read_exact(&mut vpk_entry.preload_data)?;
 
-                    vpk.tree.insert(format!("{}{}.{}", path, name, ext), vpk_entry);
+                    vpk.tree
+                        .insert(format!("{}{}.{}", path, name, ext), vpk_entry);
                 }
             }
         }
