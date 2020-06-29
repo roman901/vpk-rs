@@ -1,11 +1,13 @@
 use crate::entry::*;
 use crate::structs::*;
+use crate::Error;
 
 use std::collections::HashMap;
 use std::fs::File;
-use std::io::{BufReader, Error, Read, Seek, SeekFrom};
+use std::io::{BufReader, Read, Seek, SeekFrom};
 use std::mem;
 use std::path::Path;
+use binread::BinReaderExt;
 
 const VPK_SIGNATURE: u32 = 0x55aa1234;
 const VPK_SELF_HASHES_LENGTH: u32 = 48;
@@ -26,13 +28,14 @@ impl VPK {
         let mut reader = BufReader::new(file);
 
         // Read main VPK header
-        let header = VPKHeader::read(&mut reader)?;
+        let header: VPKHeader = reader.read_le()?;
 
-        assert_eq!(
-            header.signature, VPK_SIGNATURE,
-            "Specified file is not VPK _dir file"
-        );
-        assert!(header.version <= 2, "Unsupported version of VPK bundle");
+        if header.signature != VPK_SIGNATURE {
+            return Err(Error::InvalidSignature);
+        }
+        if header.version > 2 {
+            return Err(Error::UnsupportedVersion(header.version));
+        }
 
         let mut vpk = VPK {
             header_length: 4 * 3,
@@ -43,12 +46,11 @@ impl VPK {
         };
 
         if vpk.header.version == 2 {
-            let header_v2 = VPKHeaderV2::read(&mut reader)?;
+            let header_v2: VPKHeaderV2 = reader.read_le()?;
 
-            assert_eq!(
-                header_v2.self_hashes_length, VPK_SELF_HASHES_LENGTH,
-                "Self hashes section size mismatch"
-            );
+            if header_v2.self_hashes_length != VPK_SELF_HASHES_LENGTH {
+                return Err(Error::HashSizeMismatch);
+            }
             vpk.header_length += 4 * 4;
 
             let checksum_offset: u32 = vpk.header.tree_length
@@ -56,7 +58,7 @@ impl VPK {
                 + header_v2.chunk_hashes_length;
             reader.seek(SeekFrom::Current(checksum_offset as i64))?;
 
-            let header_v2_checksum = VPKHeaderV2Checksum::read(&mut reader)?;
+            let header_v2_checksum: VPKHeaderV2Checksum = reader.read_le()?;
 
             vpk.header_v2 = Some(header_v2);
             vpk.header_v2_checksum = Some(header_v2_checksum);
@@ -90,9 +92,11 @@ impl VPK {
                         break;
                     }
 
-                    let mut dir_entry = VPKDirectoryEntry::read(&mut reader)?;
+                    let mut dir_entry: VPKDirectoryEntry = reader.read_le()?;
 
-                    assert_eq!(dir_entry.suffix, 0xffff, "Error while parsing index");
+                    if dir_entry.suffix != 0xffff {
+                        return Err(Error::MalformedIndex);
+                    }
 
                     if dir_entry.archive_index == 0x7fff {
                         dir_entry.archive_offset =
