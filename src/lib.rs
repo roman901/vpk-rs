@@ -1,6 +1,6 @@
-mod entry;
-mod structs;
-mod vpk;
+pub mod entry;
+pub mod structs;
+pub mod vpk;
 
 use crate::vpk::VPK;
 
