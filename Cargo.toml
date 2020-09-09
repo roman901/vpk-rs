@@ -1,7 +1,7 @@
 [package]
 name = "vpk"
 description = "Valve Pak format parser for Rust"
-version = "0.1.2"
+version = "0.1.3"
 license = "MIT"
 authors = ["Roman Shishkin <spark@uwtech.org>", "Robin Appelman <robin@icewind.nl>"]
 repository = "https://github.com/roman901/vpk-rs"
