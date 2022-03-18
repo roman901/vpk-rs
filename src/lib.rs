@@ -2,7 +2,8 @@ pub mod entry;
 pub mod structs;
 pub mod vpk;
 
-use crate::vpk::VPK;
+
+pub use crate::vpk::VPK;
 
 use thiserror::Error;
 use std::path::Path;
