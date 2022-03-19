@@ -43,7 +43,7 @@ impl VPK {
             header,
             header_v2: None,
             header_v2_checksum: None,
-            tree: HashMap::with_capacity_and_hasher(0, RandomState::new()),
+            tree: HashMap::with_capacity_and_hasher(header.tree_length as usize / 50, RandomState::new()),
         };
 
         if vpk.header.version == 2 {

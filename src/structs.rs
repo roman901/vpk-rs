@@ -1,6 +1,6 @@
 use binread::BinRead;
 
-#[derive(Debug, BinRead)]
+#[derive(Debug, BinRead, Copy, Clone)]
 pub struct VPKHeader {
     pub signature: u32,
     pub version: u32,
