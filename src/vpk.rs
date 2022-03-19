@@ -4,7 +4,7 @@ use crate::Error;
 
 use std::collections::HashMap;
 use std::fs::File;
-use std::io::{BufReader, Read, Seek, SeekFrom};
+use std::io::{BufReader, Cursor, Read, Seek, SeekFrom};
 use std::mem;
 use std::path::Path;
 use ahash::RandomState;
@@ -69,6 +69,10 @@ impl VPK {
             reader.seek(SeekFrom::Start(header_length as u64))?;
         }
 
+        let mut tree_data = vec![0; header.tree_length as usize];
+        reader.read_exact(&mut tree_data)?;
+        let mut reader = Cursor::new(&tree_data);
+
         // Read index tree
         loop {
             let ext = read_cstring(&mut reader)?;
@@ -129,12 +133,12 @@ impl VPK {
     }
 }
 
-fn read_cstring(reader: &mut BufReader<File>) -> Result<String, Error> {
+fn read_cstring<R: Read>(mut reader: R) -> Result<String, Error> {
     let mut string: String = String::new();
 
     let mut buf = [0u8];
     loop {
-        reader.by_ref().read_exact(&mut buf)?;
+        reader.read_exact(&mut buf)?;
         //println!("{:?}", buf[0]);
         if buf[0] == 0 {
             break;
