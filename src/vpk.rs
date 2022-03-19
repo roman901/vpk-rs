@@ -7,6 +7,7 @@ use std::fs::File;
 use std::io::{BufReader, Read, Seek, SeekFrom};
 use std::mem;
 use std::path::Path;
+use ahash::RandomState;
 use binread::BinReaderExt;
 
 const VPK_SIGNATURE: u32 = 0x55aa1234;
@@ -18,7 +19,7 @@ pub struct VPK {
     pub header: VPKHeader,
     pub header_v2: Option<VPKHeaderV2>,
     pub header_v2_checksum: Option<VPKHeaderV2Checksum>,
-    pub tree: HashMap<String, VPKEntry>,
+    pub tree: HashMap<String, VPKEntry, RandomState>,
 }
 
 impl VPK {
@@ -42,7 +43,7 @@ impl VPK {
             header,
             header_v2: None,
             header_v2_checksum: None,
-            tree: HashMap::new(),
+            tree: HashMap::with_capacity_and_hasher(0, RandomState::new()),
         };
 
         if vpk.header.version == 2 {

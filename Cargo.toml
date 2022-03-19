@@ -10,6 +10,7 @@ edition = "2018"
 [dependencies]
 thiserror = "1.0.20"
 binread = "1.0.1"
+ahash = "0.7.6"
 
 [dev-dependencies]
 iai = "0.1.0"
