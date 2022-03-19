@@ -7,7 +7,7 @@ pub use crate::vpk::VPK;
 
 use thiserror::Error;
 use std::path::Path;
-use std::string::FromUtf8Error;
+use std::str::Utf8Error;
 
 #[derive(Debug, Error)]
 pub enum Error {
@@ -24,7 +24,7 @@ pub enum Error {
     #[error("Malformed index encountered while parsing")]
     MalformedIndex,
     #[error("Invalid utf8 string found while parsing")]
-    Utf(#[from] FromUtf8Error)
+    Utf(#[from] Utf8Error)
 }
 
 pub fn from_path(path: &str) -> Result<VPK, Error> {

@@ -85,10 +85,8 @@ impl VPK {
                 if path == "" {
                     break;
                 }
-                if path != " " {
-                    path += "/";
-                } else {
-                    path = "".to_owned();
+                if path == " " {
+                    path = "";
                 }
 
                 loop {
@@ -123,8 +121,13 @@ impl VPK {
                         .take(vpk_entry.dir_entry.preload_length as u64)
                         .read_exact(&mut vpk_entry.preload_data)?;
 
+                    let full_name = if path == "" {
+                        format!("{}.{}", name, ext)
+                    }  else {
+                        format!("{}/{}.{}", path, name, ext)
+                    };
                     vpk.tree
-                        .insert(format!("{}{}.{}", path, name, ext), vpk_entry);
+                        .insert(full_name, vpk_entry);
                 }
             }
         }
@@ -133,12 +136,12 @@ impl VPK {
     }
 }
 
-fn read_cstring(reader: &mut Cursor<&[u8]>) -> Result<String, Error> {
+fn read_cstring<'a>(reader: &mut Cursor<&'a [u8]>) -> Result<&'a str, Error> {
     let buffer = reader.clone().into_inner();
     let remaining = &buffer[reader.position() as usize..];
     let (position, _) = remaining.iter().enumerate().find(|(_, &c)| c == 0).ok_or_else(|| Error::ReadError(io::Error::from(ErrorKind::UnexpectedEof)))?;
     let string_data = &remaining[0..position];
     reader.seek(SeekFrom::Current(position as i64 + 1))?;
 
-    Ok(String::from_utf8(string_data.into())?)
+    Ok(std::str::from_utf8(string_data)?)
 }
