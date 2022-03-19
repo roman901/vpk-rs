@@ -4,8 +4,8 @@ use crate::Error;
 
 use std::collections::HashMap;
 use std::fs::File;
-use std::io::{BufReader, Cursor, Read, Seek, SeekFrom};
-use std::mem;
+use std::io::{BufReader, Cursor, ErrorKind, Read, Seek, SeekFrom};
+use std::{io, mem};
 use std::path::Path;
 use ahash::RandomState;
 use binread::BinReaderExt;
@@ -71,7 +71,7 @@ impl VPK {
 
         let mut tree_data = vec![0; header.tree_length as usize];
         reader.read_exact(&mut tree_data)?;
-        let mut reader = Cursor::new(&tree_data);
+        let mut reader = Cursor::new(tree_data.as_slice());
 
         // Read index tree
         loop {
@@ -133,19 +133,12 @@ impl VPK {
     }
 }
 
-fn read_cstring<R: Read>(mut reader: R) -> Result<String, Error> {
-    let mut string: String = String::new();
+fn read_cstring(reader: &mut Cursor<&[u8]>) -> Result<String, Error> {
+    let buffer = reader.clone().into_inner();
+    let remaining = &buffer[reader.position() as usize..];
+    let (position, _) = remaining.iter().enumerate().find(|(_, &c)| c == 0).ok_or_else(|| Error::ReadError(io::Error::from(ErrorKind::UnexpectedEof)))?;
+    let string_data = &remaining[0..position];
+    reader.seek(SeekFrom::Current(position as i64 + 1))?;
 
-    let mut buf = [0u8];
-    loop {
-        reader.read_exact(&mut buf)?;
-        //println!("{:?}", buf[0]);
-        if buf[0] == 0 {
-            break;
-        } else {
-            string.push(buf[0] as char);
-        }
-    }
-
-    return Ok(string);
+    Ok(String::from_utf8(string_data.into())?)
 }
