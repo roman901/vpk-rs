@@ -10,3 +10,18 @@ edition = "2018"
 [dependencies]
 thiserror = "1.0.20"
 binread = "1.0.1"
+
+[dev-dependencies]
+iai = "0.1.0"
+criterion = "0.3"
+
+[[bench]]
+name = "parse"
+harness = false
+
+[[bench]]
+name = "iai"
+harness = false
+
+[profile.release]
+debug = true
