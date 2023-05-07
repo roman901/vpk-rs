@@ -33,16 +33,8 @@ fn main() -> std::io::Result<()> {
         let file_path = Path::new(file);
         fs::create_dir_all(path.join(&file_path.parent().unwrap()))?;
 
-        let mut buf_len: usize = 0;
-        if vpk_entry.dir_entry.archive_index == 0x7fff {
-            buf_len = vpk_entry.dir_entry.preload_length as usize;
-        } else {
-            buf_len = vpk_entry.dir_entry.file_length as usize;
-        }
-
-        let mut buf = vec![0u8; buf_len];
-
-        vpk_entry.read(&mut buf)?;
+        let mut buf = Vec::new();
+        vpk_entry.reader()?.read_to_end(&mut buf)?;
 
         let mut out_buf = File::create(&path.join(&file_path))?;
         out_buf.write(&buf)?;
