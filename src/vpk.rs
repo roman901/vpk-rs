@@ -2,12 +2,12 @@ use crate::entry::*;
 use crate::structs::*;
 use crate::Error;
 
+use binread::BinReaderExt;
 use std::collections::HashMap;
 use std::fs::File;
 use std::io::{BufReader, Read, Seek, SeekFrom};
 use std::mem;
 use std::path::Path;
-use binread::BinReaderExt;
 
 const VPK_SIGNATURE: u32 = 0x55aa1234;
 const VPK_SELF_HASHES_LENGTH: u32 = 48;
@@ -71,13 +71,13 @@ impl VPK {
         // Read index tree
         loop {
             let ext = read_cstring(&mut reader)?;
-            if ext == "" {
+            if ext.is_empty() {
                 break;
             }
 
             loop {
                 let mut path = read_cstring(&mut reader)?;
-                if path == "" {
+                if path.is_empty() {
                     break;
                 }
                 if path != " " {
@@ -88,7 +88,7 @@ impl VPK {
 
                 loop {
                     let name = read_cstring(&mut reader)?;
-                    if name == "" {
+                    if name.is_empty() {
                         break;
                     }
 
@@ -99,8 +99,7 @@ impl VPK {
                     }
 
                     if dir_entry.archive_index == 0x7fff {
-                        dir_entry.archive_offset =
-                            vpk.header_length + vpk.header.tree_length + dir_entry.archive_offset;
+                        dir_entry.archive_offset += vpk.header_length + vpk.header.tree_length;
                     }
 
                     let preload_length = dir_entry.preload_length;
@@ -142,5 +141,5 @@ fn read_cstring(reader: &mut BufReader<File>) -> Result<String, Error> {
         }
     }
 
-    return Ok(string);
+    Ok(string)
 }
