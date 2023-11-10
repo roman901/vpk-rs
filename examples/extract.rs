@@ -31,13 +31,13 @@ fn main() -> std::io::Result<()> {
             file, vpk_entry.dir_entry.archive_index
         );
         let file_path = Path::new(file);
-        fs::create_dir_all(path.join(&file_path.parent().unwrap()))?;
+        fs::create_dir_all(path.join(file_path.parent().unwrap()))?;
 
         let mut buf = Vec::new();
         vpk_entry.reader()?.read_to_end(&mut buf)?;
 
-        let mut out_buf = File::create(&path.join(&file_path))?;
-        out_buf.write(&buf)?;
+        let mut out_buf = File::create(&path.join(file_path))?;
+        out_buf.write_all(&buf)?;
     }
 
     Ok(())
