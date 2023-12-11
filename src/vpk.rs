@@ -4,9 +4,10 @@ use crate::Error;
 
 use std::collections::HashMap;
 use std::fs::File;
-use std::io::{BufReader, Read, Seek, SeekFrom};
-use std::mem;
+use std::io::{BufReader, Cursor, ErrorKind, Read, Seek, SeekFrom};
+use std::{io, mem};
 use std::path::Path;
+use ahash::RandomState;
 use binread::BinReaderExt;
 
 const VPK_SIGNATURE: u32 = 0x55aa1234;
@@ -18,7 +19,7 @@ pub struct VPK {
     pub header: VPKHeader,
     pub header_v2: Option<VPKHeaderV2>,
     pub header_v2_checksum: Option<VPKHeaderV2Checksum>,
-    pub tree: HashMap<String, VPKEntry>,
+    pub tree: HashMap<String, VPKEntry, RandomState>,
 }
 
 impl VPK {
@@ -42,7 +43,7 @@ impl VPK {
             header,
             header_v2: None,
             header_v2_checksum: None,
-            tree: HashMap::new(),
+            tree: HashMap::with_capacity_and_hasher(header.tree_length as usize / 50, RandomState::new()),
         };
 
         if vpk.header.version == 2 {
@@ -68,6 +69,10 @@ impl VPK {
             reader.seek(SeekFrom::Start(header_length as u64))?;
         }
 
+        let mut tree_data = vec![0; header.tree_length as usize];
+        reader.read_exact(&mut tree_data)?;
+        let mut reader = Cursor::new(tree_data.as_slice());
+
         // Read index tree
         loop {
             let ext = read_cstring(&mut reader)?;
@@ -80,10 +85,8 @@ impl VPK {
                 if path == "" {
                     break;
                 }
-                if path != " " {
-                    path += "/";
-                } else {
-                    path = "".to_owned();
+                if path == " " {
+                    path = "";
                 }
 
                 loop {
@@ -118,8 +121,13 @@ impl VPK {
                         .take(vpk_entry.dir_entry.preload_length as u64)
                         .read_exact(&mut vpk_entry.preload_data)?;
 
+                    let full_name = if path == "" {
+                        format!("{}.{}", name, ext)
+                    }  else {
+                        format!("{}/{}.{}", path, name, ext)
+                    };
                     vpk.tree
-                        .insert(format!("{}{}.{}", path, name, ext), vpk_entry);
+                        .insert(full_name, vpk_entry);
                 }
             }
         }
@@ -128,19 +136,12 @@ impl VPK {
     }
 }
 
-fn read_cstring(reader: &mut BufReader<File>) -> Result<String, Error> {
-    let mut string: String = String::new();
+fn read_cstring<'a>(reader: &mut Cursor<&'a [u8]>) -> Result<&'a str, Error> {
+    let buffer = reader.clone().into_inner();
+    let remaining = &buffer[reader.position() as usize..];
+    let (position, _) = remaining.iter().enumerate().find(|(_, &c)| c == 0).ok_or_else(|| Error::ReadError(io::Error::from(ErrorKind::UnexpectedEof)))?;
+    let string_data = &remaining[0..position];
+    reader.seek(SeekFrom::Current(position as i64 + 1))?;
 
-    let mut buf = [0u8];
-    loop {
-        reader.by_ref().read_exact(&mut buf)?;
-        //println!("{:?}", buf[0]);
-        if buf[0] == 0 {
-            break;
-        } else {
-            string.push(buf[0] as char);
-        }
-    }
-
-    return Ok(string);
+    Ok(std::str::from_utf8(string_data)?)
 }
