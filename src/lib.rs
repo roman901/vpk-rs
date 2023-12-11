@@ -10,6 +10,7 @@ use std::path::Path;
 use std::str::Utf8Error;
 
 #[derive(Debug, Error)]
+#[non_exhaustive]
 pub enum Error {
     #[error("Error while trying to read data: {0}")]
     ReadError(#[from] std::io::Error),
