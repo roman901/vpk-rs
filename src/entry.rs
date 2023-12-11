@@ -1,7 +1,7 @@
 use std::borrow::Cow;
 use std::fs::File;
 use std::io::{Error, Read, Seek, SeekFrom};
-use binread::BinRead;
+use binrw::BinRead;
 
 #[derive(Debug)]
 pub struct VPKEntry {

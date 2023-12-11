@@ -8,7 +8,7 @@ use std::io::{BufReader, Cursor, ErrorKind, Read, Seek, SeekFrom};
 use std::{io, mem};
 use std::path::Path;
 use ahash::RandomState;
-use binread::BinReaderExt;
+use binrw::BinReaderExt;
 
 const VPK_SIGNATURE: u32 = 0x55aa1234;
 const VPK_SELF_HASHES_LENGTH: u32 = 48;

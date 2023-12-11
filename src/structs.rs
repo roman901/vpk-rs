@@ -1,4 +1,4 @@
-use binread::BinRead;
+use binrw::BinRead;
 
 #[derive(Debug, BinRead, Copy, Clone)]
 pub struct VPKHeader {

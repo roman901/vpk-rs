@@ -14,7 +14,7 @@ pub enum Error {
     #[error("Error while trying to read data: {0}")]
     ReadError(#[from] std::io::Error),
     #[error("Error while trying to read data: {0}")]
-    BinReadError(#[from] binread::Error),
+    BinReadError(#[from] binrw::Error),
     #[error("Invalid signature, provided file is not a VPK file")]
     InvalidSignature,
     #[error("Unsupported VPK version({0}), only version 2 and low")]

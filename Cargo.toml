@@ -6,15 +6,16 @@ license = "MIT"
 authors = ["Roman Shishkin <spark@uwtech.org>", "Robin Appelman <robin@icewind.nl>"]
 repository = "https://github.com/roman901/vpk-rs"
 edition = "2018"
+rust-version = "1.66"
 
 [dependencies]
 thiserror = "1.0.20"
-binread = "1.0.1"
-ahash = "0.7.6"
+binrw = "0.13.3"
+ahash = "0.8.6"
 
 [dev-dependencies]
 iai = "0.1.0"
-criterion = "0.3"
+criterion = "0.5.1"
 
 [[bench]]
 name = "parse"
@@ -23,6 +24,3 @@ harness = false
 [[bench]]
 name = "iai"
 harness = false
-
-[profile.release]
-debug = true
