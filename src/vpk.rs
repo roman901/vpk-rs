@@ -83,7 +83,7 @@ impl VPK {
                 if path != " " {
                     path += "/";
                 } else {
-                    path = "".to_owned();
+                    path.clear();
                 }
 
                 loop {
