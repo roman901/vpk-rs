@@ -36,7 +36,7 @@ fn main() -> std::io::Result<()> {
         let mut buf = Vec::new();
         vpk_entry.reader()?.read_to_end(&mut buf)?;
 
-        let mut out_buf = File::create(&path.join(file_path))?;
+        let mut out_buf = File::create(path.join(file_path))?;
         out_buf.write_all(&buf)?;
     }
 
