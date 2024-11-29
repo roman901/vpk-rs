@@ -53,7 +53,7 @@ pub enum VPKEntryReader<'a> {
     FileOnly { file: std::io::Take<File> },
 }
 
-impl<'a> Read for VPKEntryReader<'a> {
+impl Read for VPKEntryReader<'_> {
     fn read(&mut self, buf: &mut [u8]) -> std::io::Result<usize> {
         match self {
             VPKEntryReader::PreloadedOnly { preloaded_data } => preloaded_data.read(buf),
