@@ -9,9 +9,9 @@ edition = "2018"
 rust-version = "1.66"
 
 [dependencies]
-thiserror = "1.0.20"
-binrw = "0.13.3"
-ahash = "0.8.6"
+thiserror = "2.0.11"
+binrw = "0.14.1"
+ahash = "0.8.11"
 
 [dev-dependencies]
 iai = "0.1.0"
