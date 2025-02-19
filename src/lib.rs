@@ -23,9 +23,8 @@ pub enum Error {
     MalformedIndex,
 }
 
-pub fn from_path(path: &str) -> Result<VPK, Error> {
-    let path = Path::new(path);
-    let vpk = VPK::read(path)?;
-
-    Ok(vpk)
+/// Read the [`VPK`] the given [`Path`].
+#[doc(alias = "read")]
+pub fn from_path(path: impl AsRef<Path>) -> Result<VPK, Error> {
+    VPK::read(path)
 }
