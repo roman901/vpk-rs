@@ -8,6 +8,8 @@ use std::fs::File;
 use std::io::{BufReader, Read, Seek, SeekFrom};
 use std::mem;
 use std::path::Path;
+use std::path::PathBuf;
+use std::sync::Arc;
 
 const VPK_SIGNATURE: u32 = 0x55aa1234;
 const VPK_SELF_HASHES_LENGTH: u32 = 48;
@@ -34,14 +36,19 @@ pub struct VPK {
 
     /// Tree of the VPK containing all the [`VPKEntry`]s.
     pub tree: HashMap<String, VPKEntry>,
+
+    /// Path to root VPK.
+    ///
+    /// This is the path to the `.vpk` that [`VPK`] has read.
+    pub root_path: Arc<PathBuf>,
 }
 
 impl VPK {
     /// Read the [`VPK`] at the given [`Path`].
     #[doc(alias = "open")]
     pub fn read(dir_path: impl AsRef<Path>) -> Result<VPK, Error> {
-        let dir_path = dir_path.as_ref();
-        let file = File::open(dir_path)?;
+        let dir_path = dir_path.as_ref().to_path_buf();
+        let file = File::open(&dir_path)?;
 
         let mut reader = BufReader::new(file);
 
@@ -61,6 +68,7 @@ impl VPK {
             header_v2: None,
             header_v2_checksum: None,
             tree: HashMap::new(),
+            root_path: Arc::new(dir_path),
         };
 
         if vpk.header.version == 2 {
@@ -85,6 +93,8 @@ impl VPK {
             let header_length = mem::size_of::<VPKHeader>() + mem::size_of::<VPKHeaderV2>();
             reader.seek(SeekFrom::Start(header_length as u64))?;
         }
+
+        let vpk_root_path_str = vpk.root_path.to_str().unwrap();
 
         // Read index tree
         loop {
@@ -121,9 +131,8 @@ impl VPK {
                     }
 
                     let preload_length = dir_entry.preload_length;
-                    let _dir_path = dir_path.to_str().unwrap();
-                    let archive_path =
-                        _dir_path.replace("dir.", &format!("{:03}.", dir_entry.archive_index));
+                    let archive_path = vpk_root_path_str
+                        .replace("dir.", &format!("{:03}.", dir_entry.archive_index));
                     let mut vpk_entry = VPKEntry {
                         dir_entry,
                         archive_path,
