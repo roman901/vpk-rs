@@ -34,18 +34,15 @@ impl VPKEntry {
 
     /// Create a [`VPKEntryReader`].
     pub fn reader(&self) -> Result<VPKEntryReader<'_>, Error> {
-        let file = if self.dir_entry.archive_index == 0x7fff {
-            None
-        } else {
-            self.archive_path
-                .as_ref()
-                .map(|archive_path| {
-                    let mut file = File::open(archive_path.as_path())?;
-                    file.seek(SeekFrom::Start(self.dir_entry.archive_offset as u64))?;
-                    Ok::<_, Error>(file.take(self.dir_entry.file_length as u64))
-                })
-                .transpose()?
-        };
+        let file = self
+            .archive_path
+            .as_ref()
+            .map(|archive_path| {
+                let mut file = File::open(archive_path.as_path())?;
+                file.seek(SeekFrom::Start(self.dir_entry.archive_offset as u64))?;
+                Ok::<_, Error>(file.take(self.dir_entry.file_length as u64))
+            })
+            .transpose()?;
 
         Ok(VPKEntryReader::new(&self.preload_data, file))
     }
