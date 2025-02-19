@@ -3,14 +3,20 @@ use std::borrow::Cow;
 use std::fs::File;
 use std::io::{Error, Read, Seek, SeekFrom};
 
+/// An entry in the VPK.
 #[derive(Debug)]
 pub struct VPKEntry {
+    /// [`VPKDirectoryEntry`].
     pub dir_entry: VPKDirectoryEntry,
+    /// Path to archive (VPK) to read from.
     pub archive_path: String,
+    /// Preloaded data of the entry. This is read first before reading
+    /// from the archive.
     pub preload_data: Vec<u8>,
 }
 
 impl VPKEntry {
+    /// Get the data of the [`VPKEntry`].
     pub fn get(&self) -> Result<Cow<[u8]>, Error> {
         let mut reader = self.reader()?;
         let mut buf = Vec::new();
