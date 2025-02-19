@@ -114,12 +114,28 @@ impl<'a> VPKEntryReader<'a> {
     }
 }
 
+/// [`VPKEntry`] header.
+///
+/// Information about the entry stored in the root VPK.
 #[derive(Debug, BinRead)]
 pub struct VPKDirectoryEntry {
+    /// 32 bit CRC.
     pub crc32: u32,
+    /// Number of bytes to preload from the root VPK.
     pub preload_length: u16,
+    /// Index of archive to load entry from.
     pub archive_index: u16,
+    /// Offset of the entry in the archive.
     pub archive_offset: u32,
+    /// Length of the entry in the archive.
+    ///
+    /// # Note
+    ///
+    /// This does not include the [`Self::preload_length`]. Thus the
+    /// total entry length would be [`Self::preload_length`] +
+    /// [`Self::file_length`].
     pub file_length: u32,
+    /// Suffix of the header. This seems to be used for ensuring the
+    /// entry is read correctly from the root VPK.
     pub suffix: u16,
 }
