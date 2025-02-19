@@ -12,17 +12,33 @@ use std::path::Path;
 const VPK_SIGNATURE: u32 = 0x55aa1234;
 const VPK_SELF_HASHES_LENGTH: u32 = 48;
 
+/// Valve pack (VPK).
+///
+/// Package format used by post-GCF Source engine games to store game
+/// content.
+///
+/// There is usually a directory VPK which can refers to other VPKs at
+/// the same directory level via indices as variations of the loaded
+/// VPKs file name. The directory VPK is usually named
+/// `pak01_dir.vpk`.
 #[derive(Debug)]
 pub struct VPK {
+    /// Header length.
     pub header_length: u32,
+    /// [`VPKHeader`].
     pub header: VPKHeader,
+    /// [`VPKHeaderV2`].
     pub header_v2: Option<VPKHeaderV2>,
+    /// [`VPKHeaderV2Checksum`].
     pub header_v2_checksum: Option<VPKHeaderV2Checksum>,
+
+    /// Tree of the VPK containing all the [`VPKEntry`]s.
     pub tree: HashMap<String, VPKEntry>,
 }
 
 impl VPK {
     /// Read the [`VPK`] at the given [`Path`].
+    #[doc(alias = "open")]
     pub fn read(dir_path: impl AsRef<Path>) -> Result<VPK, Error> {
         let dir_path = dir_path.as_ref();
         let file = File::open(dir_path)?;
