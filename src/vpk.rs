@@ -94,7 +94,25 @@ impl VPK {
             reader.seek(SeekFrom::Start(header_length as u64))?;
         }
 
-        let vpk_root_path_str = vpk.root_path.to_str().unwrap();
+        let vpk_root_file_name = vpk
+            .root_path
+            .file_name()
+            .ok_or(Error::FilenameNotAvailable)?
+            .to_str()
+            .ok_or(Error::FilenameNotRepresentableAsStr)?;
+        let mut vpk_paths = HashMap::new();
+        vpk_paths.insert(0x7fff, vpk.root_path.clone());
+
+        let mut vpk_path_for_archive_index = |archive_index: u16| {
+            vpk_paths
+                .entry(archive_index)
+                .or_insert_with(|| {
+                    Arc::new(PathBuf::from(
+                        vpk_root_file_name.replace("dir", &format!("{:03}", archive_index)),
+                    ))
+                })
+                .clone()
+        };
 
         // Read index tree
         loop {
@@ -131,8 +149,8 @@ impl VPK {
                     }
 
                     let preload_length = dir_entry.preload_length;
-                    let archive_path = vpk_root_path_str
-                        .replace("dir.", &format!("{:03}.", dir_entry.archive_index));
+                    let archive_path = (dir_entry.file_length != 0)
+                        .then(|| vpk_path_for_archive_index(dir_entry.archive_index));
                     let mut vpk_entry = VPKEntry {
                         dir_entry,
                         archive_path,

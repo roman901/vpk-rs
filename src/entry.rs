@@ -2,14 +2,22 @@ use binread::BinRead;
 use std::borrow::Cow;
 use std::fs::File;
 use std::io::{Error, Read, Seek, SeekFrom};
+use std::path::PathBuf;
+use std::sync::Arc;
 
 /// An entry in the VPK.
 #[derive(Debug)]
 pub struct VPKEntry {
     /// [`VPKDirectoryEntry`].
     pub dir_entry: VPKDirectoryEntry,
-    /// Path to archive (VPK) to read from.
-    pub archive_path: String,
+    /// [`PathBuf`] to archive (VPK) to read from.
+    ///
+    /// Is [`Some`] when data for the entry must be read from the file
+    /// (in addition to [`Self::preload_data`]).
+    ///
+    /// Is [`None`] when the data must be read only from
+    /// [`Self::preload_data`].
+    pub archive_path: Option<Arc<PathBuf>>,
     /// Preloaded data of the entry. This is read first before reading
     /// from the archive.
     pub preload_data: Vec<u8>,
@@ -29,9 +37,14 @@ impl VPKEntry {
         let file = if self.dir_entry.archive_index == 0x7fff {
             None
         } else {
-            let mut file = File::open(&self.archive_path)?;
-            file.seek(SeekFrom::Start(self.dir_entry.archive_offset as u64))?;
-            Some(file.take(self.dir_entry.file_length as u64))
+            self.archive_path
+                .as_ref()
+                .map(|archive_path| {
+                    let mut file = File::open(archive_path.as_path())?;
+                    file.seek(SeekFrom::Start(self.dir_entry.archive_offset as u64))?;
+                    Ok::<_, Error>(file.take(self.dir_entry.file_length as u64))
+                })
+                .transpose()?
         };
 
         Ok(VPKEntryReader::new(&self.preload_data, file))

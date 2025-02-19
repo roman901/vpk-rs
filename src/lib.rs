@@ -21,6 +21,10 @@ pub enum Error {
     HashSizeMismatch,
     #[error("Malformed index encountered while parsing")]
     MalformedIndex,
+    #[error("Filename not available")]
+    FilenameNotAvailable,
+    #[error("Filename not representable as str")]
+    FilenameNotRepresentableAsStr,
 }
 
 /// Read the [`VPK`] the given [`Path`].
