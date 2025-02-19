@@ -22,7 +22,9 @@ pub struct VPK {
 }
 
 impl VPK {
-    pub fn read(dir_path: &Path) -> Result<VPK, Error> {
+    /// Read the [`VPK`] at the given [`Path`].
+    pub fn read(dir_path: impl AsRef<Path>) -> Result<VPK, Error> {
+        let dir_path = dir_path.as_ref();
         let file = File::open(dir_path)?;
 
         let mut reader = BufReader::new(file);
