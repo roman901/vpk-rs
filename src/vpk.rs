@@ -94,6 +94,7 @@ impl VPK {
             reader.seek(SeekFrom::Start(header_length as u64))?;
         }
 
+        let vpk_root_parent = vpk.root_path.parent().expect("file always in a directory");
         let vpk_root_file_name = vpk
             .root_path
             .file_name()
@@ -103,16 +104,17 @@ impl VPK {
         let mut vpk_paths = HashMap::new();
         vpk_paths.insert(0x7fff, vpk.root_path.clone());
 
-        let mut vpk_path_for_archive_index = |archive_index: u16| {
-            vpk_paths
-                .entry(archive_index)
-                .or_insert_with(|| {
-                    Arc::new(PathBuf::from(
-                        vpk_root_file_name.replace("dir", &format!("{:03}", archive_index)),
-                    ))
-                })
-                .clone()
-        };
+        let mut vpk_path_for_archive_index =
+            |archive_index: u16| {
+                vpk_paths
+                    .entry(archive_index)
+                    .or_insert_with(|| {
+                        Arc::new(vpk_root_parent.join(
+                            vpk_root_file_name.replace("dir", &format!("{:03}", archive_index)),
+                        ))
+                    })
+                    .clone()
+            };
 
         // Read index tree
         loop {
