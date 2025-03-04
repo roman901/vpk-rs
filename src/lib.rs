@@ -2,17 +2,20 @@ pub mod entry;
 pub mod structs;
 pub mod vpk;
 
+use thiserror::Error;
+
 pub use crate::vpk::VPK;
 
 use std::path::Path;
-use thiserror::Error;
+use std::str::Utf8Error;
 
 #[derive(Debug, Error)]
+#[non_exhaustive]
 pub enum Error {
     #[error("Error while trying to read data: {0}")]
     ReadError(#[from] std::io::Error),
     #[error("Error while trying to read data: {0}")]
-    BinReadError(#[from] binread::Error),
+    BinReadError(#[from] binrw::Error),
     #[error("Invalid signature, provided file is not a VPK file")]
     InvalidSignature,
     #[error("Unsupported VPK version({0}), only version 2 and low")]
@@ -21,6 +24,8 @@ pub enum Error {
     HashSizeMismatch,
     #[error("Malformed index encountered while parsing")]
     MalformedIndex,
+    #[error("Invalid utf8 string found while parsing")]
+    Utf(#[from] Utf8Error),
     #[error("Filename not available")]
     FilenameNotAvailable,
     #[error("Filename not representable as str")]

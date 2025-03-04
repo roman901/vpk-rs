@@ -1,12 +1,26 @@
 [package]
 name = "vpk"
 description = "Valve Pak format parser for Rust"
-version = "0.1.4"
+version = "0.2.0"
 license = "MIT"
 authors = ["Roman Shishkin <spark@uwtech.org>", "Robin Appelman <robin@icewind.nl>"]
 repository = "https://github.com/roman901/vpk-rs"
 edition = "2018"
+rust-version = "1.66"
 
 [dependencies]
-thiserror = "1.0.20"
-binread = "1.0.1"
+thiserror = "2.0.11"
+binrw = "0.14.1"
+ahash = "0.8.11"
+
+[dev-dependencies]
+iai = "0.1.0"
+criterion = "0.5.1"
+
+[[bench]]
+name = "parse"
+harness = false
+
+[[bench]]
+name = "iai"
+harness = false

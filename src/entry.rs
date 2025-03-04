@@ -1,4 +1,4 @@
-use binread::BinRead;
+use binrw::BinRead;
 use std::borrow::Cow;
 use std::fs::File;
 use std::io::{Error, Read, Seek, SeekFrom};
