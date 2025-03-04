@@ -2,10 +2,10 @@ pub mod entry;
 pub mod structs;
 pub mod vpk;
 
+use thiserror::Error;
 
 pub use crate::vpk::VPK;
 
-use thiserror::Error;
 use std::path::Path;
 use std::str::Utf8Error;
 
@@ -25,12 +25,15 @@ pub enum Error {
     #[error("Malformed index encountered while parsing")]
     MalformedIndex,
     #[error("Invalid utf8 string found while parsing")]
-    Utf(#[from] Utf8Error)
+    Utf(#[from] Utf8Error),
+    #[error("Filename not available")]
+    FilenameNotAvailable,
+    #[error("Filename not representable as str")]
+    FilenameNotRepresentableAsStr,
 }
 
-pub fn from_path(path: &str) -> Result<VPK, Error> {
-    let path = Path::new(path);
-    let vpk = VPK::read(&path)?;
-
-    Ok(vpk)
+/// Read the [`VPK`] the given [`Path`].
+#[doc(alias = "read")]
+pub fn from_path(path: impl AsRef<Path>) -> Result<VPK, Error> {
+    VPK::read(path)
 }

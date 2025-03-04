@@ -3,7 +3,7 @@ use vpk::VPK;
 
 fn parse_vpk(c: &mut Criterion) {
     c.bench_function("parse vpk", |b| {
-        b.iter(|| VPK::read(black_box("tf2_misc_dir.vpk".as_ref())).unwrap())
+        b.iter(|| VPK::read(black_box("tf2_misc_dir.vpk")).unwrap())
     });
 }
 
